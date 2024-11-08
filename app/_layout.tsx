@@ -1,37 +1,47 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Stack } from "expo-router";
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import * as SplashScreen from 'expo-splash-screen'; // Import SplashScreen to manage the loading screen
+import { useEffect, useCallback } from 'react';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  // Load the fonts
+  const [fontsLoaded] = useFonts({
+    'outfit': require('../assets/fonts/Outfit-Regular.ttf'),
+    'outfit-medium': require('../assets/fonts/Outfit-Medium.ttf'),
+    'outfit-bold': require('../assets/fonts/Outfit-Bold.ttf'),
   });
 
+  // Keep the splash screen visible while fonts are loading
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    SplashScreen.preventAutoHideAsync();
+  }, []);
 
-  if (!loaded) {
+  // Hide the splash screen once fonts are loaded
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  // Wait for fonts to load before rendering the layout
+  if (!fontsLoaded) {
     return null;
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <Stack onLayout={onLayoutRootView} screenOptions={{
+      headerShown:false,
+    }}>
+      {/* <Stack.Screen 
+        name="index" 
+        options={{
+          headerShown: false,
+        }} 
+      /> */}
+
+      <Stack.Screen name='(tabs)'>
+
+      </Stack.Screen>
+    </Stack>
   );
 }
